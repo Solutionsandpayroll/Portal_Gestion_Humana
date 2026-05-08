@@ -115,8 +115,8 @@ const Dashboard = () => {
           </p>
           <div className="hero-stats">
             <div className="hero-stat">
-              <span className="stat-number">2</span>
-              <span className="stat-label">Formularios activos</span>
+              <span className="stat-number">4</span>
+              <span className="stat-label">Contenidos activos</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">

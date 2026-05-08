@@ -537,14 +537,14 @@
 }
 
 .suboption-btn:hover {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
   transform: translateX(3px);
 }
 
 .suboption-btn:hover .card-arrow {
-  color: var(--accent);
+  color: #f59e0b;
   transform: translateX(2px);
 }
 
