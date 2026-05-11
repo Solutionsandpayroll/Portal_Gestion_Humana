@@ -1,36 +1,15 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [pendingPath, setPendingPath] = useState('');
-  const [nameInput, setNameInput] = useState('');
-  const [savedName, setSavedName] = useState(
-    () => localStorage.getItem('gh_usuario') || ''
-  );
+  const savedName = localStorage.getItem('gh_usuario') || 'Usuario Corporativo';
 
-  const handleNavigate = (path: string) => {
-    setNameInput(localStorage.getItem('gh_usuario') || '');
-    setPendingPath(path);
-    setModalOpen(true);
-  };
-
-  const handleModalConfirm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = nameInput.trim();
-    if (!trimmed) return;
-    localStorage.setItem('gh_usuario', trimmed);
-    setSavedName(trimmed);
-    setModalOpen(false);
-    navigate(pendingPath);
-  };
-
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setPendingPath('');
+  const handleLogout = () => {
+    localStorage.removeItem('gh_token');
+    localStorage.removeItem('gh_usuario');
+    navigate('/login', { replace: true });
   };
 
   const formularios = [
@@ -94,8 +73,16 @@ const Dashboard = () => {
                   <circle cx="12" cy="7" r="4" />
                 </svg>
               </div>
-              <span className="navbar-username">{savedName || 'Usuario Corporativo'}</span>
+              <span className="navbar-username">{savedName}</span>
             </div>
+            <button className="navbar-logout" onClick={handleLogout} title="Cerrar sesión">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Salir
+            </button>
           </div>
         </div>
       </header>
@@ -180,7 +167,7 @@ const Dashboard = () => {
                       key={opt.label}
                       type="button"
                       className="suboption-btn"
-                      onClick={() => handleNavigate(opt.path)}
+                      onClick={() => navigate(opt.path)}
                     >
                       <span className="suboption-dot" style={{ background: form.color }} />
                       {opt.label}
@@ -196,10 +183,10 @@ const Dashboard = () => {
                 key={form.id}
                 className="module-card"
                 style={{ animationDelay: `${i * 0.08}s`, cursor: 'pointer' }}
-                onClick={() => handleNavigate(form.path!)}
+                onClick={() => navigate(form.path!)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleNavigate(form.path!)}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(form.path!)}
               >
                 <div className="card-accent-bar" style={{ background: form.color }} />
                 <div className="card-top">
@@ -249,10 +236,10 @@ const Dashboard = () => {
           <div
             className="module-card benefit-card"
             style={{ cursor: 'pointer' }}
-            onClick={() => handleNavigate('/formulario-people')}
+            onClick={() => navigate('/formulario-people')}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/formulario-people')}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/formulario-people')}
           >
             <div className="card-accent-bar" style={{ background: '#10b981' }} />
             <div className="card-top">
@@ -404,46 +391,6 @@ const Dashboard = () => {
           </div>
         </div>
       </section>
-
-      {/* ── Modal identificación ── */}
-      {modalOpen && (
-        <div className="modal-overlay" onClick={handleModalClose}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <h2 className="modal-title">¿Quién realiza este registro?</h2>
-            <p className="modal-desc">
-              Tu nombre quedará registrado junto con el formulario enviado.
-            </p>
-            <form className="modal-form" onSubmit={handleModalConfirm}>
-              <input
-                type="text"
-                className="modal-input"
-                placeholder="Escribe tu nombre completo"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                autoFocus
-                required
-              />
-              <div className="modal-actions">
-                <button type="button" className="modal-btn modal-btn--cancel" onClick={handleModalClose}>
-                  Cancelar
-                </button>
-                <button type="submit" className="modal-btn modal-btn--confirm" disabled={!nameInput.trim()}>
-                  Continuar
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ── Footer ── */}
       <footer className="footer">
