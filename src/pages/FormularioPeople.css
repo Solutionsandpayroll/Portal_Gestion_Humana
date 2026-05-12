@@ -190,6 +190,7 @@
   width: 100%;
   margin: 0 auto;
   padding: 2rem 2rem 4rem;
+  animation: peopleFadeUp 0.5s ease 0.1s both;
 }
 
 .people-form {
@@ -205,7 +206,12 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  animation: peopleFadeUp 0.5s ease both;
 }
+
+.people-section:nth-child(1) { animation-delay: 0.15s; }
+.people-section:nth-child(2) { animation-delay: 0.25s; }
+.people-section:nth-child(3) { animation-delay: 0.35s; }
 
 .people-section-header {
   padding: 1.25rem 1.75rem 1rem;
@@ -413,6 +419,11 @@
 
 @keyframes peopleSpin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes peopleFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Success screen ── */

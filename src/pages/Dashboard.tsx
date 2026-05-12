@@ -412,12 +412,6 @@ const Dashboard = () => {
               <p>📍 Bogotá, Colombia</p>
             </div>
             <div className="footer-col">
-              <h4>Enlaces Rápidos</h4>
-              <p>Portal de Formularios</p>
-              <p>Gestión Humana</p>
-              <p>Soporte Técnico</p>
-            </div>
-            <div className="footer-col">
               <h4>Horario de Atención</h4>
               <p>Lun – Vie: 8:00 AM – 6:00 PM</p>
             </div>
