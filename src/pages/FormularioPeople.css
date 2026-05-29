@@ -355,6 +355,70 @@
   flex-shrink: 0;
 }
 
+/* ── Fecha de solicitud ── */
+.people-fecha-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  animation: peopleFadeUp 0.5s ease 0.4s both;
+}
+
+.people-fecha-header {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1.25rem 1.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.people-fecha-header svg {
+  width: 22px;
+  height: 22px;
+  color: var(--people-green);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.people-fecha-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.people-fecha-desc {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.people-date-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.925rem;
+  color: var(--text-primary);
+  background: var(--bg);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
+}
+
+.people-date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
 /* ── Actions ── */
 .people-actions {
   display: flex;

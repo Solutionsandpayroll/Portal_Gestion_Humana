@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
+import CalendarioSelector from '../components/CalendarioSelector';
 import './FormularioPeople.css';
 
 /* ── Tipos ── */
@@ -53,6 +54,7 @@ const categorias: { key: Categoria; titulo: string; descripcion?: string }[] = [
 /* ── Componente ── */
 const FormularioPeople = () => {
   const [seleccion, setSeleccion] = useState<string>('');
+  const [fechasSolicitud, setFechasSolicitud] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -65,12 +67,30 @@ const FormularioPeople = () => {
   }, []);
 
   const beneficioSeleccionado = beneficios.find((b) => b.id === seleccion);
+  const requiereDias = ['matrimonio', 'luto_mascota'].includes(seleccion) ? 2 : 1;
+
+  const handleSeleccionBeneficio = (id: string) => {
+    setSeleccion(id);
+    setFechasSolicitud([]);
+    setSubmitError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!seleccion) return;
     setIsSubmitting(true);
     setSubmitError(null);
+
+    if (fechasSolicitud.length < requiereDias) {
+      setSubmitError(
+        requiereDias === 2
+          ? 'Este beneficio requiere 2 días. Por favor selecciona un segundo día en el calendario.'
+          : 'Selecciona una fecha antes de continuar.'
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const label = beneficioSeleccionado
         ? beneficioSeleccionado.dias
@@ -87,6 +107,8 @@ const FormularioPeople = () => {
         body: JSON.stringify({
           nombreUsuario: userName,
           beneficioSeleccionado: label,
+          fechaSolicitud: fechasSolicitud[0],
+          fechaSolicitud2: fechasSolicitud[1] ?? '',
         }),
       });
       if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
@@ -111,13 +133,16 @@ const FormularioPeople = () => {
           </div>
           <h2>¡Solicitud enviada!</h2>
           <p>
-            Tu solicitud del beneficio <strong>{beneficioSeleccionado?.label}</strong> ha sido
-            registrada correctamente. El equipo de Gestión Humana la procesará pronto.
+            Tu solicitud del beneficio <strong>{beneficioSeleccionado?.label}</strong>{' '}
+            {fechasSolicitud.length === 2
+              ? <>para los días <strong>{fechasSolicitud[0].split('-').reverse().join('/')}</strong> y <strong>{fechasSolicitud[1].split('-').reverse().join('/')}</strong></>
+              : <>para el día <strong>{fechasSolicitud[0]?.split('-').reverse().join('/')}</strong></>}{' '}
+            ha sido registrada correctamente. El equipo de Gestión Humana la procesará pronto.
           </p>
           <div className="people-success-actions">
             <button
               className="people-btn-outline"
-              onClick={() => { setSeleccion(''); setSubmitted(false); setSubmitError(null); }}
+              onClick={() => { setSeleccion(''); setFechasSolicitud([]); setSubmitted(false); setSubmitError(null); }}
             >
               Nueva solicitud
             </button>
@@ -177,46 +202,73 @@ const FormularioPeople = () => {
       <main className="people-main">
         <form className="people-form" onSubmit={handleSubmit}>
 
-          {categorias.map((cat) => {
+          {categorias.map((cat, idx) => {
             const items = beneficios.filter((b) => b.categoria === cat.key);
             return (
-              <section key={cat.key} className="people-section">
-                <div className="people-section-header">
-                  <h2 className="people-section-title">{cat.titulo}</h2>
-                  {cat.descripcion && (
-                    <p className="people-section-desc">{cat.descripcion}</p>
-                  )}
-                </div>
-                <div className="people-beneficios-list">
-                  {items.map((b) => (
-                    <label
-                      key={b.id}
-                      className={`people-beneficio-card${seleccion === b.id ? ' selected' : ''}`}
-                    >
-                      <input
-                        type="radio"
-                        name="beneficio"
-                        value={b.id}
-                        checked={seleccion === b.id}
-                        onChange={() => setSeleccion(b.id)}
-                        className="people-radio-input"
-                      />
-                      <div className="people-beneficio-radio">
-                        <div className="people-radio-dot" />
+              <Fragment key={cat.key}>
+                <section className="people-section">
+                  <div className="people-section-header">
+                    <h2 className="people-section-title">{cat.titulo}</h2>
+                    {cat.descripcion && (
+                      <p className="people-section-desc">{cat.descripcion}</p>
+                    )}
+                  </div>
+                  <div className="people-beneficios-list">
+                    {items.map((b) => (
+                      <label
+                        key={b.id}
+                        className={`people-beneficio-card${seleccion === b.id ? ' selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="beneficio"
+                          value={b.id}
+                          checked={seleccion === b.id}
+                          onChange={() => handleSeleccionBeneficio(b.id)}
+                          className="people-radio-input"
+                        />
+                        <div className="people-beneficio-radio">
+                          <div className="people-radio-dot" />
+                        </div>
+                        <div className="people-beneficio-content">
+                          <span className="people-beneficio-label">{b.label}</span>
+                          {b.dias && (
+                            <span className="people-beneficio-badge people-beneficio-badge--dias">{b.dias}</span>
+                          )}
+                          {b.detalle && (
+                            <span className="people-beneficio-detalle">{b.detalle}</span>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Calendario: aparece justo debajo de Días Remunerados */}
+                {idx === 0 && (
+                  <section className="people-fecha-section">
+                    <div className="people-fecha-header">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                      </svg>
+                      <div>
+                        <h2 className="people-fecha-title">Fecha de solicitud</h2>
+                        <p className="people-fecha-desc">
+                          {requiereDias === 2
+                            ? 'Este beneficio requiere 2 días. Selecciona ambas fechas en el calendario.'
+                            : 'Selecciona el día en que deseas hacer uso del beneficio.'}
+                        </p>
                       </div>
-                      <div className="people-beneficio-content">
-                        <span className="people-beneficio-label">{b.label}</span>
-                        {b.dias && (
-                          <span className="people-beneficio-badge people-beneficio-badge--dias">{b.dias}</span>
-                        )}
-                        {b.detalle && (
-                          <span className="people-beneficio-detalle">{b.detalle}</span>
-                        )}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </section>
+                    </div>
+                    <CalendarioSelector
+                      value={fechasSolicitud}
+                      onChange={setFechasSolicitud}
+                      max={requiereDias}
+                    />
+                  </section>
+                )}
+              </Fragment>
             );
           })}
 
@@ -235,7 +287,7 @@ const FormularioPeople = () => {
             <button
               type="submit"
               className="people-btn-submit"
-              disabled={!seleccion || isSubmitting}
+              disabled={!seleccion || fechasSolicitud.length === 0 || isSubmitting}
             >
               {isSubmitting
                 ? (<><span className="people-spinner" />Enviando...</>)
