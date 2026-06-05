@@ -9,12 +9,9 @@ interface FormData {
   tipoSolicitud: 'nueva_posicion' | 'reemplazo' | '';
   salario: string;
   otrosPagos: string;
-  nivelAcademico: string;
-  aniosExperiencia: string;
+  otrosAuxilios: string;
   tipoContrato: 'indefinido' | 'fijo' | 'otro' | '';
   tipoContratoOtro: string;
-  experienciaEspecifica: string;
-  conocimientosTecnicos: string;
   requierePrueba: 'si' | 'no' | '';
   observaciones: string;
 }
@@ -26,12 +23,9 @@ const initialForm: FormData = {
   tipoSolicitud: '',
   salario: '',
   otrosPagos: '',
-  nivelAcademico: '',
-  aniosExperiencia: '',
+  otrosAuxilios: '',
   tipoContrato: '',
   tipoContratoOtro: '',
-  experienciaEspecifica: '',
-  conocimientosTecnicos: '',
   requierePrueba: '',
   observaciones: '',
 };
@@ -272,6 +266,18 @@ const FormularioRequisicion = () => {
                 />
               </div>
 
+              <div className="form-group">
+                <label htmlFor="otrosAuxilios">Otros auxilios</label>
+                <input
+                  type="text"
+                  id="otrosAuxilios"
+                  name="otrosAuxilios"
+                  placeholder="Ej. auxilio de transporte, alimentación..."
+                  value={form.otrosAuxilios}
+                  onChange={handleChange}
+                />
+              </div>
+
               <div className="form-group form-group--full">
                 <label>Tipo de Contrato <span className="required">*</span></label>
                 <div className="radio-group">
@@ -333,63 +339,7 @@ const FormularioRequisicion = () => {
             </div>
             <div className="form-grid">
 
-              <div className="form-group">
-                <label htmlFor="nivelAcademico">Nivel Académico Requerido <span className="required">*</span></label>
-                <select
-                  id="nivelAcademico"
-                  name="nivelAcademico"
-                  value={form.nivelAcademico}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="bachiller">Bachiller</option>
-                  <option value="tecnico">Técnico / Tecnólogo</option>
-                  <option value="profesional">Profesional</option>
-                  <option value="especializacion">Especialización</option>
-                  <option value="maestria">Maestría</option>
-                  <option value="doctorado">Doctorado</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="aniosExperiencia">Años de Experiencia Mínima <span className="required">*</span></label>
-                <input
-                  type="number"
-                  id="aniosExperiencia"
-                  name="aniosExperiencia"
-                  min="0"
-                  max="30"
-                  placeholder="Ej. 2"
-                  value={form.aniosExperiencia}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group form-group--full">
-                <label htmlFor="experienciaEspecifica">Experiencia Específica Requerida</label>
-                <textarea
-                  id="experienciaEspecifica"
-                  name="experienciaEspecifica"
-                  rows={3}
-                  placeholder="Describe la experiencia particular que debe tener el candidato..."
-                  value={form.experienciaEspecifica}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="form-group form-group--full">
-                <label htmlFor="conocimientosTecnicos">Conocimientos Técnicos Clave <span className="hint">(palabras clave)</span></label>
-                <input
-                  type="text"
-                  id="conocimientosTecnicos"
-                  name="conocimientosTecnicos"
-                  placeholder="Ej. Excel avanzado, SAP, Python, Power BI..."
-                  value={form.conocimientosTecnicos}
-                  onChange={handleChange}
-                />
-              </div>
+              {/* Removed Nivel académico, Años experiencia, Experiencia específica y Conocimientos técnicos as requested */}
 
               <div className="form-group">
                 <label>¿Requiere Prueba Técnica? <span className="required">*</span></label>

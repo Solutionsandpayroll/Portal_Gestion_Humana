@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import JSZip from 'jszip';
 import './FormularioDesempenoEstrategico.css';
+import PersonSelector from '../components/PersonSelector';
 
 /* ── Tipos ── */
 type Score = 1 | 2 | 3 | 4 | 5 | null;
@@ -416,23 +417,19 @@ const FormularioDesempenoEstrategico = () => {
             <div className="fields-grid fields-grid--2">
               <div className="field-group">
                 <label className="field-label">Nombre del Evaluado <span className="required">*</span></label>
-                <input
-                  type="text"
-                  className="field-input"
-                  placeholder="Nombre completo"
+                <PersonSelector
                   value={form.nombreEvaluado}
-                  onChange={(e) => setField('nombreEvaluado', e.target.value)}
+                  onChange={(v) => setField('nombreEvaluado', v)}
+                  placeholder="Nombre completo"
                   required
                 />
               </div>
               <div className="field-group">
                 <label className="field-label">Nombre del Evaluador <span className="required">*</span></label>
-                <input
-                  type="text"
-                  className="field-input"
-                  placeholder="Nombre completo"
+                <PersonSelector
                   value={form.nombreEvaluador}
-                  onChange={(e) => setField('nombreEvaluador', e.target.value)}
+                  onChange={(v) => setField('nombreEvaluador', v)}
+                  placeholder="Nombre completo"
                   required
                 />
               </div>
@@ -448,7 +445,7 @@ const FormularioDesempenoEstrategico = () => {
                 />
               </div>
               <div className="field-group">
-                <label className="field-label">Cargo Actual <span className="required">*</span></label>
+                <label className="field-label">Cargo Actual del Evaluado <span className="required">*</span></label>
                 <input
                   type="text"
                   className="field-input"
@@ -458,6 +455,7 @@ const FormularioDesempenoEstrategico = () => {
                   required
                 />
               </div>
+              
               <div className="field-group">
                 <label className="field-label">Fecha <span className="required">*</span></label>
                 <input
@@ -492,10 +490,10 @@ const FormularioDesempenoEstrategico = () => {
                       {opt.label}
                     </label>
                   ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
           {/* ── Bloque informativo ── */}
           <div className="info-block">

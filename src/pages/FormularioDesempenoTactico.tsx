@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import JSZip from 'jszip';
 // Reutiliza los mismos estilos del formulario estratégico
 import './FormularioDesempenoEstrategico.css';
+import PersonSelector from '../components/PersonSelector';
 
 /* ── Tipos ── */
 type Score = 1 | 2 | 3 | 4 | 5 | null;
@@ -369,13 +370,11 @@ const FormularioDesempenoTactico = () => {
             <div className="fields-grid fields-grid--2">
               <div className="field-group">
                 <label className="field-label">Nombre del Evaluado <span className="required">*</span></label>
-                <input type="text" className="field-input" placeholder="Nombre completo"
-                  value={form.nombreEvaluado} onChange={(e) => setField('nombreEvaluado', e.target.value)} required />
+                <PersonSelector value={form.nombreEvaluado} onChange={(v) => setField('nombreEvaluado', v)} placeholder="Nombre completo" required />
               </div>
               <div className="field-group">
                 <label className="field-label">Nombre del Evaluador <span className="required">*</span></label>
-                <input type="text" className="field-input" placeholder="Nombre completo"
-                  value={form.nombreEvaluador} onChange={(e) => setField('nombreEvaluador', e.target.value)} required />
+                <PersonSelector value={form.nombreEvaluador} onChange={(v) => setField('nombreEvaluador', v)} placeholder="Nombre completo" required />
               </div>
               <div className="field-group">
                 <label className="field-label">Área de Trabajo <span className="required">*</span></label>
@@ -383,7 +382,7 @@ const FormularioDesempenoTactico = () => {
                   value={form.areaTrabajo} onChange={(e) => setField('areaTrabajo', e.target.value)} required />
               </div>
               <div className="field-group">
-                <label className="field-label">Cargo Actual <span className="required">*</span></label>
+                <label className="field-label">Cargo Actual del Evaluado <span className="required">*</span></label>
                 <input type="text" className="field-input" placeholder="Cargo del evaluado"
                   value={form.cargoActual} onChange={(e) => setField('cargoActual', e.target.value)} required />
               </div>
@@ -411,6 +410,7 @@ const FormularioDesempenoTactico = () => {
                   ))}
                 </div>
               </div>
+              
             </div>
           </section>
 
