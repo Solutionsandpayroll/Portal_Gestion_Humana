@@ -55,6 +55,14 @@ const categorias: { key: Categoria; titulo: string; descripcion?: string }[] = [
 const FormularioPeople = () => {
   const [seleccion, setSeleccion] = useState<string>('');
   const [fechasSolicitud, setFechasSolicitud] = useState<string[]>([]);
+  const [correoContacto, setCorreoContacto] = useState('');
+  const [fechaCita, setFechaCita] = useState('');
+  const [duracionMinutos, setDuracionMinutos] = useState(60);
+  const [encargadoEmail, setEncargadoEmail] = useState('');
+  const [slotsDisponibles, setSlotsDisponibles] = useState<Array<{ start: string; end: string }>>([]);
+  const [slotSeleccionado, setSlotSeleccionado] = useState('');
+  const [cargandoDisponibilidad, setCargandoDisponibilidad] = useState(false);
+  const [meetingInfo, setMeetingInfo] = useState<{ eventId: string; teamsMeetingUrl: string; fecha: string; hora: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -67,13 +75,53 @@ const FormularioPeople = () => {
   }, []);
 
   const beneficioSeleccionado = beneficios.find((b) => b.id === seleccion);
+  const isPeopleCuidado = seleccion === 'people_cuidado';
+  const esDiaRemunerado = beneficioSeleccionado?.categoria === 'dias_remunerados';
   const requiereDias = ['matrimonio', 'luto_mascota'].includes(seleccion) ? 2 : 1;
+
+  const formatearHora = (isoDateTime: string) => {
+    const dt = new Date(isoDateTime);
+    return dt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
 
   const handleSeleccionBeneficio = (id: string) => {
     setSeleccion(id);
     setFechasSolicitud([]);
+    setFechaCita('');
+    setSlotSeleccionado('');
+    setSlotsDisponibles([]);
+    setMeetingInfo(null);
     setSubmitError(null);
   };
+
+  useEffect(() => {
+    const fetchDisponibilidad = async () => {
+      if (!isPeopleCuidado || !fechaCita) return;
+      setCargandoDisponibilidad(true);
+      setSubmitError(null);
+      setSlotSeleccionado('');
+      try {
+        const start = `${fechaCita}T00:00:00`;
+        const end = `${fechaCita}T23:59:59`;
+        const response = await fetch(`/api/availability?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, {
+          cache: 'no-store',
+        });
+        if (!response.ok) {
+          throw new Error(`No fue posible consultar disponibilidad (${response.status}).`);
+        }
+        const data = await response.json();
+        setEncargadoEmail(data.encargadoEmail || '');
+        setSlotsDisponibles(Array.isArray(data.available) ? data.available : []);
+      } catch (err) {
+        setSlotsDisponibles([]);
+        setSubmitError(err instanceof Error ? err.message : 'Error consultando disponibilidad.');
+      } finally {
+        setCargandoDisponibilidad(false);
+      }
+    };
+
+    fetchDisponibilidad();
+  }, [isPeopleCuidado, fechaCita]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +129,7 @@ const FormularioPeople = () => {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    if (fechasSolicitud.length < requiereDias) {
+    if (esDiaRemunerado && fechasSolicitud.length < requiereDias) {
       setSubmitError(
         requiereDias === 2
           ? 'Este beneficio requiere 2 días. Por favor selecciona un segundo día en el calendario.'
@@ -91,7 +139,45 @@ const FormularioPeople = () => {
       return;
     }
 
+    if (isPeopleCuidado) {
+      if (!correoContacto.trim()) {
+        setSubmitError('Ingresa un correo para agendar la sesión de People Cuidado.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!slotSeleccionado) {
+        setSubmitError('Selecciona un horario disponible para agendar la sesión.');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
+      let citaCreada: { eventId: string; teamsMeetingUrl: string; fecha: string; hora: string } | null = null;
+      if (isPeopleCuidado) {
+        const [fecha, horaSeg] = slotSeleccionado.split('T');
+        const hora = (horaSeg || '').slice(0, 5);
+        const citaResp = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: userName,
+            correo: correoContacto.trim(),
+            fecha,
+            hora,
+            duracionMinutos,
+          }),
+        });
+
+        if (!citaResp.ok) {
+          const errData = await citaResp.json().catch(() => ({}));
+          throw new Error(errData?.error || `No fue posible crear la cita (${citaResp.status}).`);
+        }
+
+        citaCreada = await citaResp.json();
+        setMeetingInfo(citaCreada);
+      }
+
       const label = beneficioSeleccionado
         ? beneficioSeleccionado.dias
           ? `${beneficioSeleccionado.label} (${beneficioSeleccionado.dias})`
@@ -101,14 +187,28 @@ const FormularioPeople = () => {
         : seleccion;
 
       const url = import.meta.env.VITE_PA_PEOPLE_URL as string;
+      const fechaPrincipal = isPeopleCuidado && slotSeleccionado
+        ? slotSeleccionado.split('T')[0]
+        : (esDiaRemunerado ? fechasSolicitud[0] : '');
+      const horaSesion = isPeopleCuidado && slotSeleccionado
+        ? (slotSeleccionado.split('T')[1] || '').slice(0, 5)
+        : '';
+
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombreUsuario: userName,
           beneficioSeleccionado: label,
-          fechaSolicitud: fechasSolicitud[0],
+          fechaSolicitud: fechaPrincipal,
           fechaSolicitud2: fechasSolicitud[1] ?? '',
+          correoContacto: correoContacto.trim(),
+          encargadoEmail,
+          fechaSesion: isPeopleCuidado ? fechaPrincipal : '',
+          horaSesion,
+          duracionMinutos: isPeopleCuidado ? duracionMinutos : '',
+          eventId: citaCreada?.eventId || '',
+          teamsMeetingUrl: citaCreada?.teamsMeetingUrl || '',
         }),
       });
       if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
@@ -134,11 +234,24 @@ const FormularioPeople = () => {
           <h2>¡Solicitud enviada!</h2>
           <p>
             Tu solicitud del beneficio <strong>{beneficioSeleccionado?.label}</strong>{' '}
-            {fechasSolicitud.length === 2
-              ? <>para los días <strong>{fechasSolicitud[0].split('-').reverse().join('/')}</strong> y <strong>{fechasSolicitud[1].split('-').reverse().join('/')}</strong></>
-              : <>para el día <strong>{fechasSolicitud[0]?.split('-').reverse().join('/')}</strong></>}{' '}
+            {esDiaRemunerado && fechasSolicitud.length > 0 && (
+              fechasSolicitud.length === 2
+                ? <>para los días <strong>{fechasSolicitud[0].split('-').reverse().join('/')}</strong> y <strong>{fechasSolicitud[1].split('-').reverse().join('/')}</strong></>
+                : <>para el día <strong>{fechasSolicitud[0]?.split('-').reverse().join('/')}</strong></>
+            )}{' '}
+            {isPeopleCuidado && meetingInfo?.fecha && meetingInfo?.hora && (
+              <>ha quedado agendada para el <strong>{meetingInfo.fecha}</strong> a las <strong>{meetingInfo.hora}</strong>. </>
+            )}
             ha sido registrada correctamente. El equipo de Gestión Humana la procesará pronto.
           </p>
+          {meetingInfo?.teamsMeetingUrl && (
+            <p>
+              Tu reunión de Teams fue creada correctamente:{' '}
+              <a href={meetingInfo.teamsMeetingUrl} target="_blank" rel="noreferrer">
+                Unirme a la reunión
+              </a>
+            </p>
+          )}
           <div className="people-success-actions">
             <button
               className="people-btn-outline"
@@ -272,6 +385,75 @@ const FormularioPeople = () => {
             );
           })}
 
+          {isPeopleCuidado && (
+            <section className="people-cuidado-section">
+              <div className="people-cuidado-header">
+                <h2 className="people-section-title">Agenda tu sesión con el encargado</h2>
+                <p className="people-section-desc">
+                  Selecciona fecha y horario disponible para agendar automáticamente la reunión de Teams.
+                </p>
+              </div>
+
+              <div className="people-cuidado-grid">
+                <label className="people-cuidado-field">
+                  <span>Correo de contacto</span>
+                  <input
+                    type="email"
+                    value={correoContacto}
+                    onChange={(e) => setCorreoContacto(e.target.value)}
+                    placeholder="tu.correo@empresa.com"
+                    required={isPeopleCuidado}
+                  />
+                </label>
+
+                <label className="people-cuidado-field">
+                  <span>Fecha de la sesión</span>
+                  <input
+                    type="date"
+                    value={fechaCita}
+                    onChange={(e) => setFechaCita(e.target.value)}
+                    required={isPeopleCuidado}
+                  />
+                </label>
+
+                <label className="people-cuidado-field">
+                  <span>Duración</span>
+                  <select
+                    value={duracionMinutos}
+                    onChange={(e) => setDuracionMinutos(Number(e.target.value))}
+                  >
+                    <option value={30}>30 minutos</option>
+                    <option value={60}>60 minutos</option>
+                  </select>
+                </label>
+
+                <div className="people-cuidado-encargado">
+                  Encargado asignado: <strong>{encargadoEmail || 'Consultando...'}</strong>
+                </div>
+              </div>
+
+              <div className="people-cuidado-slots">
+                <h3>Horarios disponibles</h3>
+                {cargandoDisponibilidad && <p>Consultando disponibilidad...</p>}
+                {!cargandoDisponibilidad && fechaCita && slotsDisponibles.length === 0 && (
+                  <p>No hay horarios disponibles para la fecha seleccionada.</p>
+                )}
+                <div className="people-slots-grid">
+                  {slotsDisponibles.map((slot) => (
+                    <button
+                      key={slot.start}
+                      type="button"
+                      className={`people-slot-btn${slotSeleccionado === slot.start ? ' selected' : ''}`}
+                      onClick={() => setSlotSeleccionado(slot.start)}
+                    >
+                      {formatearHora(slot.start)} - {formatearHora(slot.end)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Acciones */}
           {submitError && (
             <div className="people-error-banner">
@@ -287,7 +469,12 @@ const FormularioPeople = () => {
             <button
               type="submit"
               className="people-btn-submit"
-              disabled={!seleccion || fechasSolicitud.length === 0 || isSubmitting}
+              disabled={
+                !seleccion ||
+                isSubmitting ||
+                (esDiaRemunerado && fechasSolicitud.length === 0) ||
+                (isPeopleCuidado && (!fechaCita || !slotSeleccionado || !correoContacto.trim()))
+              }
             >
               {isSubmitting
                 ? (<><span className="people-spinner" />Enviando...</>)

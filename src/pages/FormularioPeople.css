@@ -565,6 +565,83 @@
 
 .people-btn-primary:hover { background: #059669; }
 
+/* ── People Cuidado - agenda ── */
+.people-cuidado-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem 1.5rem;
+}
+
+.people-cuidado-header { margin-bottom: 1rem; }
+
+.people-cuidado-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.people-cuidado-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.people-cuidado-field span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.people-cuidado-field input,
+.people-cuidado-field select {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.people-cuidado-encargado {
+  grid-column: 1 / -1;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.people-cuidado-slots h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+.people-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.people-slot-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-primary);
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.people-slot-btn:hover {
+  border-color: var(--people-green);
+  background: var(--people-green-light);
+}
+
+.people-slot-btn.selected {
+  border-color: var(--people-green);
+  background: var(--people-green-light);
+  color: #065f46;
+  font-weight: 700;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .people-hero { padding: 2rem 1rem 3rem; }
@@ -574,4 +651,5 @@
   .people-beneficios-list { padding: 0.5rem 0.5rem; }
   .people-actions { flex-direction: column-reverse; align-items: stretch; }
   .people-btn-cancel { text-align: center; }
+  .people-cuidado-grid { grid-template-columns: 1fr; }
 }
